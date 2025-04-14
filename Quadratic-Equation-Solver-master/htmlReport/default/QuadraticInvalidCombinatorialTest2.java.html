@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QuadraticInvalidCombinatorialTest2.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">QuadraticInvalidCombinatorialTest Coverage Results, QuadraticValidCombinatorialTest Coverage Results, QuadraticZ3InvalidTest Coverage Results, QuadraticZ3ValidTest Coverage Results, ImprovedCoverageTest Coverage Results</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">QuadraticInvalidCombinatorialTest2.java</span></div><h1>QuadraticInvalidCombinatorialTest2.java</h1><pre class="source lang-java linenums">import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.time.Duration;
+
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+
+<span class="nc" id="L15">public class QuadraticInvalidCombinatorialTest2 {</span>
+
+<span class="nc" id="L17">    private final InputStream originalIn = System.in;</span>
+<span class="nc" id="L18">    private final PrintStream originalOut = System.out;</span>
+    private ByteArrayOutputStream outContent;
+
+    @BeforeEach
+    void setUp() {
+<span class="nc" id="L23">        outContent = new ByteArrayOutputStream();</span>
+<span class="nc" id="L24">        System.setOut(new PrintStream(outContent));</span>
+<span class="nc" id="L25">    }</span>
+
+    @AfterEach
+    void tearDown() {
+<span class="nc" id="L29">        System.setIn(originalIn);</span>
+<span class="nc" id="L30">        System.setOut(originalOut);</span>
+<span class="nc" id="L31">    }</span>
+
+    /**
+     * 测试 b 参数非法输入：
+     * 初次输入：a = &quot;1&quot;（合法），b = invalidB（非法），程序检测到 b 错误后重新从 a 开始输入。
+     * 第二轮输入：a = &quot;1&quot;，b = &quot;2&quot;，c = &quot;3&quot;；
+     * 最后输入 &quot;n&quot; 退出（额外追加一行 &quot;n&quot; 确保退出）。
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {&quot;@&quot;, &quot;1E309&quot;, &quot;1E-325&quot;})
+    void testInvalidB(String invalidB) {
+        // 构造输入脚本：
+        // 第一轮：a = &quot;1&quot;, b = invalidB
+        // 第二轮：重新输入 a = &quot;1&quot;, b = &quot;2&quot;, c = &quot;3&quot;
+        // 最后退出：&quot;n&quot;（再追加一行 &quot;n&quot;）
+<span class="nc" id="L46">        String simulatedInput = &quot;1\n&quot; + invalidB + &quot;\n&quot; +</span>
+                &quot;1\n&quot; + &quot;2\n&quot; + &quot;3\n&quot; +
+                &quot;n\n&quot; + &quot;n\n&quot;;
+<span class="nc" id="L49">        System.setIn(new ByteArrayInputStream(simulatedInput.getBytes()));</span>
+
+        // 限制整个执行过程在 5 秒内完成
+<span class="nc" id="L52">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="nc" id="L53">            Quadratic.main(new String[]{});</span>
+<span class="nc" id="L54">        });</span>
+
+<span class="nc" id="L56">        String output = outContent.toString();</span>
+<span class="nc" id="L57">        System.out.println(&quot;Simulated Input for B:\n&quot; + simulatedInput);</span>
+<span class="nc" id="L58">        System.out.println(&quot;Captured Output for B:\n&quot; + output);</span>
+
+        // 检查输出中是否包含针对 b 的非法输入的提示信息
+<span class="nc" id="L61">        Assertions.assertTrue(</span>
+<span class="nc bnc" id="L62" title="All 4 branches missed.">                output.contains(&quot;not allowed&quot;) || output.contains(&quot;too large or too small&quot;),</span>
+                &quot;对于 b 的非法输入 &quot; + invalidB + &quot; 应提示错误信息。&quot;
+        );
+        // 检查最终输出中包含求解结果提示，例如 &quot;x1 =&quot;
+<span class="nc" id="L66">        Assertions.assertTrue(</span>
+<span class="nc" id="L67">                output.contains(&quot;x1 =&quot;),</span>
+                &quot;在重新输入合法 b 后，最终输出应包含求解结果 'x1 ='.&quot;
+        );
+<span class="nc" id="L70">    }</span>
+
+    /**
+     * 测试 c 参数非法输入：
+     * 初次输入：a = &quot;1&quot;，b = &quot;2&quot;，c = invalidC（非法），程序检测到 c 错误后重新从 a 开始输入。
+     * 第二轮输入：a = &quot;1&quot;，b = &quot;2&quot;，c = &quot;3&quot;；
+     * 最后输入 &quot;n&quot; 退出（再追加一行 &quot;n&quot;）。
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {&quot;@&quot;, &quot;1E309&quot;, &quot;1E-325&quot;})
+    void testInvalidC(String invalidC) {
+        // 构造输入脚本：
+        // 第一轮：a = &quot;1&quot;, b = &quot;2&quot;, c = invalidC
+        // 第二轮：重新输入 a = &quot;1&quot;, b = &quot;2&quot;, c = &quot;3&quot;
+        // 最后退出：&quot;n&quot;（再追加一行 &quot;n&quot;）
+<span class="nc" id="L85">        String simulatedInput = &quot;1\n&quot; + &quot;2\n&quot; + invalidC + &quot;\n&quot; +</span>
+                &quot;1\n&quot; + &quot;2\n&quot; + &quot;3\n&quot; +
+                &quot;n\n&quot; + &quot;n\n&quot;;
+<span class="nc" id="L88">        System.setIn(new ByteArrayInputStream(simulatedInput.getBytes()));</span>
+
+<span class="nc" id="L90">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="nc" id="L91">            Quadratic.main(new String[]{});</span>
+<span class="nc" id="L92">        });</span>
+
+<span class="nc" id="L94">        String output = outContent.toString();</span>
+<span class="nc" id="L95">        System.out.println(&quot;Simulated Input for C:\n&quot; + simulatedInput);</span>
+<span class="nc" id="L96">        System.out.println(&quot;Captured Output for C:\n&quot; + output);</span>
+
+        // 检查输出中是否包含针对 c 的非法输入的提示信息
+<span class="nc" id="L99">        Assertions.assertTrue(</span>
+<span class="nc bnc" id="L100" title="All 4 branches missed.">                output.contains(&quot;not allowed&quot;) || output.contains(&quot;too large or too small&quot;),</span>
+                &quot;对于 c 的非法输入 &quot; + invalidC + &quot; 应提示错误信息。&quot;
+        );
+        // 检查最终输出中包含求解结果提示，例如 &quot;x1 =&quot;
+<span class="nc" id="L104">        Assertions.assertTrue(</span>
+<span class="nc" id="L105">                output.contains(&quot;x1 =&quot;),</span>
+                &quot;在重新输入合法 c 后，最终输出应包含求解结果 'x1 ='.&quot;
+        );
+<span class="nc" id="L108">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

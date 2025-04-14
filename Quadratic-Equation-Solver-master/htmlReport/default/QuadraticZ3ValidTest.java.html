@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QuadraticZ3ValidTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">QuadraticInvalidCombinatorialTest Coverage Results, QuadraticValidCombinatorialTest Coverage Results, QuadraticZ3InvalidTest Coverage Results, QuadraticZ3ValidTest Coverage Results, ImprovedCoverageTest Coverage Results</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">QuadraticZ3ValidTest.java</span></div><h1>QuadraticZ3ValidTest.java</h1><pre class="source lang-java linenums">import com.microsoft.z3.*;
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+<span class="nc" id="L12">public class QuadraticZ3ValidTest {</span>
+
+    private static final double TOLERANCE = 1e-6;
+
+    @Test
+    public void testRealAndComplexRoots() throws Exception {
+<span class="nc" id="L18">        Context ctx = new Context();</span>
+<span class="nc" id="L19">        Solver solver = ctx.mkSolver();</span>
+
+<span class="nc" id="L21">        RealExpr a = ctx.mkRealConst(&quot;a&quot;);</span>
+<span class="nc" id="L22">        RealExpr b = ctx.mkRealConst(&quot;b&quot;);</span>
+<span class="nc" id="L23">        RealExpr c = ctx.mkRealConst(&quot;c&quot;);</span>
+
+        // 添加基本约束：a ≠ 0，限制范围避免过大过小引起精度异常
+<span class="nc" id="L26">        solver.add(ctx.mkNot(ctx.mkEq(a, ctx.mkReal(0))));</span>
+<span class="nc" id="L27">        solver.add(ctx.mkGe(a, ctx.mkReal(&quot;-10&quot;)));</span>
+<span class="nc" id="L28">        solver.add(ctx.mkLe(a, ctx.mkReal(&quot;10&quot;)));</span>
+<span class="nc" id="L29">        solver.add(ctx.mkGe(b, ctx.mkReal(&quot;-100&quot;)));</span>
+<span class="nc" id="L30">        solver.add(ctx.mkLe(b, ctx.mkReal(&quot;100&quot;)));</span>
+<span class="nc" id="L31">        solver.add(ctx.mkGe(c, ctx.mkReal(&quot;-100&quot;)));</span>
+<span class="nc" id="L32">        solver.add(ctx.mkLe(c, ctx.mkReal(&quot;100&quot;)));</span>
+
+        // 多次尝试生成满足不同判别式条件的解
+<span class="nc" id="L35">        String[] labels = {&quot;&gt; 0 (real unequal)&quot;, &quot;= 0 (real equal)&quot;, &quot;&lt; 0 (complex roots)&quot;};</span>
+<span class="nc" id="L36">        BoolExpr[] discriminantConditions = {</span>
+<span class="nc" id="L37">                ctx.mkGt(ctx.mkSub(ctx.mkMul(b, b), ctx.mkMul(ctx.mkInt(4), a, c)), ctx.mkReal(0)),</span>
+<span class="nc" id="L38">                ctx.mkEq(ctx.mkSub(ctx.mkMul(b, b), ctx.mkMul(ctx.mkInt(4), a, c)), ctx.mkReal(0)),</span>
+<span class="nc" id="L39">                ctx.mkLt(ctx.mkSub(ctx.mkMul(b, b), ctx.mkMul(ctx.mkInt(4), a, c)), ctx.mkReal(0))</span>
+        };
+
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        for (int i = 0; i &lt; discriminantConditions.length; i++) {</span>
+<span class="nc" id="L43">            solver.push();</span>
+<span class="nc" id="L44">            solver.add(discriminantConditions[i]);</span>
+
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            if (solver.check() != Status.SATISFIABLE) {</span>
+<span class="nc" id="L47">                solver.pop();</span>
+<span class="nc" id="L48">                continue;</span>
+            }
+
+<span class="nc" id="L51">            Model model = solver.getModel();</span>
+<span class="nc" id="L52">            double aVal = parseZ3Number(model.evaluate(a, false).toString());</span>
+<span class="nc" id="L53">            double bVal = parseZ3Number(model.evaluate(b, false).toString());</span>
+<span class="nc" id="L54">            double cVal = parseZ3Number(model.evaluate(c, false).toString());</span>
+
+<span class="nc" id="L56">            System.out.printf(&quot;\n[%s] Equation: %.4fx^2 + %.4fx + %.4f = 0\n&quot;, labels[i], aVal, bVal, cVal);</span>
+
+            // 精度保护检查
+<span class="nc" id="L59">            double discriminant = bVal * bVal - 4 * aVal * cVal;</span>
+<span class="nc bnc" id="L60" title="All 4 branches missed.">            if (Double.isNaN(discriminant) || discriminant == bVal * bVal) {</span>
+<span class="nc" id="L61">                System.out.println(&quot;[Skip] Triggered NotEnoughPrecisionException by design&quot;);</span>
+<span class="nc" id="L62">                solver.pop();</span>
+<span class="nc" id="L63">                continue;</span>
+            }
+
+<span class="nc" id="L66">            ByteArrayOutputStream out = new ByteArrayOutputStream();</span>
+<span class="nc" id="L67">            PrintStream original = System.out;</span>
+<span class="nc" id="L68">            System.setOut(new PrintStream(out));</span>
+
+            try {
+<span class="nc" id="L71">                Quadratic.solveQuadratic(aVal, bVal, cVal);</span>
+<span class="nc" id="L72">            } catch (NotEnoughPrecisionException e) {</span>
+<span class="nc" id="L73">                fail(&quot;Unexpected NotEnoughPrecisionException&quot;);</span>
+            } finally {
+<span class="nc" id="L75">                System.setOut(original);</span>
+            }
+
+<span class="nc" id="L78">            String output = out.toString(StandardCharsets.UTF_8).trim();</span>
+<span class="nc" id="L79">            System.out.println(output);</span>
+
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (!output.contains(&quot;i&quot;)) {</span>
+<span class="nc" id="L82">                List&lt;Double&gt; roots = extractRootsFromOutput(output);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                for (double x : roots) {</span>
+<span class="nc" id="L84">                    double fx = aVal * x * x + bVal * x + cVal;</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                    assertTrue(Math.abs(fx) &lt; TOLERANCE, &quot;f(&quot; + x + &quot;) = &quot; + fx + &quot; is not approximately zero&quot;);</span>
+<span class="nc" id="L86">                }</span>
+<span class="nc" id="L87">            } else {</span>
+                // ==== 复数验证逻辑 ====
+<span class="nc" id="L89">                String[] lines = output.split(&quot;\\n&quot;);</span>
+<span class="nc" id="L90">                String realStr = &quot;&quot;, imagStr = &quot;&quot;;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                for (String line : lines) {</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                    if (line.startsWith(&quot;x1 = &quot;)) {</span>
+<span class="nc" id="L93">                        String[] parts = line.replace(&quot;x1 = &quot;, &quot;&quot;).split(&quot;\\+&quot;);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                        if (parts.length == 2) {</span>
+<span class="nc" id="L95">                            realStr = parts[0].trim();</span>
+<span class="nc" id="L96">                            imagStr = parts[1].replace(&quot;i&quot;, &quot;&quot;).trim();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                        } else if (line.contains(&quot;i&quot;)) {</span>
+<span class="nc" id="L98">                            realStr = &quot;0&quot;;</span>
+<span class="nc" id="L99">                            imagStr = line.replace(&quot;x1 = &quot;, &quot;&quot;).replace(&quot;i&quot;, &quot;&quot;).trim();</span>
+                        }
+                    }
+                }
+                try {
+<span class="nc" id="L104">                    double realPart = Double.parseDouble(realStr);</span>
+<span class="nc" id="L105">                    double imagPart = Double.parseDouble(imagStr);</span>
+<span class="nc" id="L106">                    double expectedReal = -bVal / (2 * aVal);</span>
+<span class="nc" id="L107">                    double expectedImag = Math.sqrt(-discriminant) / (2 * aVal);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                    assertTrue(Math.abs(realPart - expectedReal) &lt; TOLERANCE, &quot;Real part mismatch: &quot; + realPart + &quot; vs &quot; + expectedReal);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                    assertTrue(Math.abs(imagPart - expectedImag) &lt; TOLERANCE, &quot;Imaginary part mismatch: &quot; + imagPart + &quot; vs &quot; + expectedImag);</span>
+<span class="nc" id="L110">                    System.out.println(&quot;[✓] Complex root verified: real and imaginary parts correct.&quot;);</span>
+<span class="nc" id="L111">                } catch (NumberFormatException e) {</span>
+<span class="nc" id="L112">                    fail(&quot;Failed to parse complex root parts.&quot;);</span>
+<span class="nc" id="L113">                }</span>
+            }
+
+<span class="nc" id="L116">            solver.pop();</span>
+        }
+
+<span class="nc" id="L119">        ctx.close();</span>
+<span class="nc" id="L120">    }</span>
+
+    private static double parseZ3Number(String value) {
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (value.contains(&quot;/&quot;)) {</span>
+<span class="nc" id="L124">            String[] parts = value.split(&quot;/&quot;);</span>
+<span class="nc" id="L125">            return Double.parseDouble(parts[0]) / Double.parseDouble(parts[1]);</span>
+        } else {
+<span class="nc" id="L127">            return Double.parseDouble(value);</span>
+        }
+    }
+
+    private static List&lt;Double&gt; extractRootsFromOutput(String output) {
+<span class="nc" id="L132">        List&lt;Double&gt; roots = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        for (String line : output.split(&quot;\\n&quot;)) {</span>
+<span class="nc bnc" id="L134" title="All 6 branches missed.">            if ((line.contains(&quot;x1&quot;) || line.contains(&quot;x2&quot;)) &amp;&amp; !line.contains(&quot;i&quot;)) {</span>
+<span class="nc" id="L135">                String[] parts = line.split(&quot;=&quot;);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                if (parts.length == 2) {</span>
+                    try {
+<span class="nc" id="L138">                        String cleaned = parts[1].replace(&quot;+&quot;, &quot;&quot;).trim();</span>
+<span class="nc" id="L139">                        roots.add(Double.parseDouble(cleaned));</span>
+<span class="nc" id="L140">                    } catch (NumberFormatException ignored) {}</span>
+                }
+            }
+        }
+<span class="nc" id="L144">        return roots;</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

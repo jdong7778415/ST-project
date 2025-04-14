@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QuadraticValidCombinatorialTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">QuadraticInvalidCombinatorialTest Coverage Results, QuadraticValidCombinatorialTest Coverage Results, QuadraticZ3InvalidTest Coverage Results, QuadraticZ3ValidTest Coverage Results, ImprovedCoverageTest Coverage Results</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">QuadraticValidCombinatorialTest.java</span></div><h1>QuadraticValidCombinatorialTest.java</h1><pre class="source lang-java linenums">import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.time.Duration;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+
+
+<span class="nc" id="L14">public class QuadraticValidCombinatorialTest {</span>
+
+<span class="nc" id="L16">    private final InputStream originalIn = System.in;</span>
+<span class="nc" id="L17">    private final PrintStream originalOut = System.out;</span>
+    private ByteArrayOutputStream outContent;
+
+    @BeforeEach
+    void setUp() {
+        // 重定向 System.out 到 outContent 以捕获输出
+<span class="nc" id="L23">        outContent = new ByteArrayOutputStream();</span>
+<span class="nc" id="L24">        System.setOut(new PrintStream(outContent));</span>
+<span class="nc" id="L25">    }</span>
+
+    @AfterEach
+    void tearDown() {
+        // 恢复原始 System.in 和 System.out
+<span class="nc" id="L30">        System.setIn(originalIn);</span>
+<span class="nc" id="L31">        System.setOut(originalOut);</span>
+<span class="nc" id="L32">    }</span>
+
+    /**
+     * 每个测试用例从 CSV 文件中读取一组合法的 a, b, c 输入。
+     * 我们将这 3 个输入依次送入主程序，再加上 &quot;n&quot; 退出程序，
+     * 模拟一次完整的用户交互流程。
+     */
+    @ParameterizedTest
+    @CsvFileSource(resources = &quot;/valid-test-data.csv&quot;, numLinesToSkip = 1)
+    void testValidInput(String a, String b, String c) {
+        // 构造输入脚本：依次输入 a, b, c，再输入 &quot;n&quot; 退出程序
+<span class="nc" id="L43">        String simulatedInput = a + &quot;\n&quot; + b + &quot;\n&quot; + c + &quot;\n&quot; + &quot;n\n&quot;;</span>
+<span class="nc" id="L44">        System.setIn(new ByteArrayInputStream(simulatedInput.getBytes()));</span>
+
+        // 使用 assertTimeoutPreemptively 限制主程序执行时间，确保 Quadratic.main 方法在 5 秒内完成执行。
+        // 如果执行时间超过 5 秒，则测试会自动中断并标记为失败，防止因无限循环或卡住而阻塞测试。
+<span class="nc" id="L48">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="nc" id="L49">            Quadratic.main(new String[]{});</span>
+<span class="nc" id="L50">        });</span>
+
+<span class="nc" id="L52">        String output = outContent.toString();</span>
+
+        // 输出中应包含求解结果提示，如 &quot;x1 =&quot;，表示成功计算出根
+<span class="nc" id="L55">        Assertions.assertTrue(output.contains(&quot;x1 =&quot;),</span>
+                &quot;对于合法输入，输出应包含求解结果，例如 'x1 ='。&quot;);
+<span class="nc" id="L57">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

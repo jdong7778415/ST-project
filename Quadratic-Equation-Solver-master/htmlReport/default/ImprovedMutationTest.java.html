@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImprovedMutationTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">QuadraticInvalidCombinatorialTest Coverage Results, QuadraticValidCombinatorialTest Coverage Results, QuadraticZ3InvalidTest Coverage Results, QuadraticZ3ValidTest Coverage Results, ImprovedCoverageTest Coverage Results</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">ImprovedMutationTest.java</span></div><h1>ImprovedMutationTest.java</h1><pre class="source lang-java linenums">import org.junit.jupiter.api.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.time.Duration;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+<span class="nc" id="L11">public class ImprovedMutationTest {</span>
+
+<span class="nc" id="L13">    private final InputStream originalIn = System.in;</span>
+<span class="nc" id="L14">    private final PrintStream originalOut = System.out;</span>
+    private ByteArrayOutputStream outContent;
+
+    @BeforeEach
+    void setUp() {
+<span class="nc" id="L19">        outContent = new ByteArrayOutputStream();</span>
+<span class="nc" id="L20">        System.setOut(new PrintStream(outContent));</span>
+<span class="nc" id="L21">    }</span>
+
+    @AfterEach
+    void tearDown() {
+<span class="nc" id="L25">        System.setIn(originalIn);</span>
+<span class="nc" id="L26">        System.setOut(originalOut);</span>
+<span class="nc" id="L27">    }</span>
+
+    @Test
+    void testZeroDiscriminant() throws Exception {
+        // a=1, b=2, c=1 =&gt; discriminant = 0 =&gt; one real root
+<span class="nc" id="L32">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="nc" id="L33">            Quadratic.solveQuadratic(1, 2, 1);</span>
+<span class="nc" id="L34">        });</span>
+<span class="nc" id="L35">        String output = outContent.toString();</span>
+<span class="nc bnc" id="L36" title="All 4 branches missed.">        assertTrue(output.contains(&quot;x1 =&quot;) &amp;&amp; !output.contains(&quot;x2 =&quot;));</span>
+<span class="nc" id="L37">    }</span>
+
+    @Test
+    void testNegativeDiscriminantComplexOutput() throws Exception {
+<span class="nc" id="L41">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="nc" id="L42">            Quadratic.solveQuadratic(1, 2, 5);</span>
+<span class="nc" id="L43">        });</span>
+<span class="nc" id="L44">        String output = outContent.toString();</span>
+<span class="nc" id="L45">        assertTrue(output.contains(&quot;i&quot;));</span>
+<span class="nc bnc" id="L46" title="All 4 branches missed.">        assertTrue(output.contains(&quot;x1 =&quot;) &amp;&amp; output.contains(&quot;x2 =&quot;));</span>
+<span class="nc" id="L47">    }</span>
+
+    @Test
+    void testSameRootsNotPrintedTwice() throws Exception {
+        // a = 1, b = 2, c = 1 -&gt; root is -1, should only print once
+<span class="nc" id="L52">        Quadratic.solveQuadratic(1, 2, 1);</span>
+<span class="nc" id="L53">        String output = outContent.toString();</span>
+<span class="nc" id="L54">        long count = output.lines().filter(line -&gt; line.contains(&quot;x1 =&quot;)).count();</span>
+<span class="nc" id="L55">        assertEquals(1, count);</span>
+<span class="nc" id="L56">    }</span>
+
+    @Test
+    void testSignFunctionPositive() {
+<span class="nc" id="L60">        assertEquals(1, invokeSign(5.0));</span>
+<span class="nc" id="L61">    }</span>
+
+    @Test
+    void testSignFunctionNegative() {
+<span class="nc" id="L65">        assertEquals(-1, invokeSign(-3.2));</span>
+<span class="nc" id="L66">    }</span>
+
+    @Test
+    void testNewtonSqrt() throws Exception {
+<span class="nc" id="L70">        double sqrt = invokeSqrtByNewton(9.0);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        assertTrue(Math.abs(sqrt - 3.0) &lt; 0.0001);</span>
+<span class="nc" id="L72">    }</span>
+
+    @Test
+    void testFormatIntegerDouble() throws Exception {
+<span class="nc" id="L76">        String formatted = invokeFormatDouble(4.0);</span>
+<span class="nc" id="L77">        assertEquals(&quot;4&quot;, formatted);</span>
+<span class="nc" id="L78">    }</span>
+
+    @Test
+    void testFormatDecimalDouble() throws Exception {
+<span class="nc" id="L82">        String formatted = invokeFormatDouble(4.75);</span>
+<span class="nc" id="L83">        assertEquals(&quot;4.75&quot;, formatted);</span>
+<span class="nc" id="L84">    }</span>
+
+    private int invokeSign(double b) {
+        try {
+<span class="nc" id="L88">            var method = Quadratic.class.getDeclaredMethod(&quot;sign&quot;, double.class);</span>
+<span class="nc" id="L89">            method.setAccessible(true);</span>
+<span class="nc" id="L90">            return (int) method.invoke(null, b);</span>
+<span class="nc" id="L91">        } catch (Exception e) {</span>
+<span class="nc" id="L92">            throw new RuntimeException(e);</span>
+        }
+    }
+
+    private double invokeSqrtByNewton(double val) {
+        try {
+<span class="nc" id="L98">            var method = Quadratic.class.getDeclaredMethod(&quot;sqrtByNewton&quot;, double.class);</span>
+<span class="nc" id="L99">            method.setAccessible(true);</span>
+<span class="nc" id="L100">            return (double) method.invoke(null, val);</span>
+<span class="nc" id="L101">        } catch (Exception e) {</span>
+<span class="nc" id="L102">            throw new RuntimeException(e);</span>
+        }
+    }
+
+    private String invokeFormatDouble(double val) {
+        try {
+<span class="nc" id="L108">            var method = Quadratic.class.getDeclaredMethod(&quot;formatDouble&quot;, double.class);</span>
+<span class="nc" id="L109">            method.setAccessible(true);</span>
+<span class="nc" id="L110">            return (String) method.invoke(null, val);</span>
+<span class="nc" id="L111">        } catch (Exception e) {</span>
+<span class="nc" id="L112">            throw new RuntimeException(e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

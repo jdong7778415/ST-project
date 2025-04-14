@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>QuadraticInvalidCombinatorialTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">QuadraticInvalidCombinatorialTest Coverage Results, QuadraticValidCombinatorialTest Coverage Results, QuadraticZ3InvalidTest Coverage Results, QuadraticZ3ValidTest Coverage Results, ImprovedCoverageTest Coverage Results</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">QuadraticInvalidCombinatorialTest.java</span></div><h1>QuadraticInvalidCombinatorialTest.java</h1><pre class="source lang-java linenums">import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.time.Duration;
+
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+
+<span class="fc" id="L16">public class QuadraticInvalidCombinatorialTest {</span>
+
+<span class="fc" id="L18">    private final InputStream originalIn = System.in;</span>
+<span class="fc" id="L19">    private final PrintStream originalOut = System.out;</span>
+    private ByteArrayOutputStream outContent;
+
+    @BeforeEach
+    void setUp() {
+<span class="fc" id="L24">        outContent = new ByteArrayOutputStream();</span>
+<span class="fc" id="L25">        System.setOut(new PrintStream(outContent));</span>
+<span class="fc" id="L26">    }</span>
+
+    @AfterEach
+    void tearDown() {
+<span class="fc" id="L30">        System.setIn(originalIn);</span>
+<span class="fc" id="L31">        System.setOut(originalOut);</span>
+<span class="fc" id="L32">    }</span>
+
+    /**
+     * 测试 a 参数非法输入
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {&quot;@&quot;, &quot;1E309&quot;, &quot;1E-325&quot;})
+    void testInvalidA(String invalidA) {
+<span class="fc" id="L40">        String simulatedInput = invalidA + &quot;\n&quot; +</span>
+                &quot;1\n&quot; + &quot;2\n&quot; + &quot;3\n&quot; +
+                &quot;n\n&quot; + &quot;n\n&quot;;
+<span class="fc" id="L43">        System.setIn(new ByteArrayInputStream(simulatedInput.getBytes()));</span>
+
+<span class="fc" id="L45">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="fc" id="L46">            Quadratic.main(new String[]{});</span>
+<span class="fc" id="L47">        });</span>
+
+<span class="fc" id="L49">        String output = outContent.toString();</span>
+<span class="fc" id="L50">        System.out.println(&quot;Simulated Input for A:\n&quot; + simulatedInput);</span>
+<span class="fc" id="L51">        System.out.println(&quot;Captured Output for A:\n&quot; + output);</span>
+
+<span class="fc" id="L53">        Assertions.assertTrue(</span>
+<span class="pc bpc" id="L54" title="1 of 4 branches missed.">                output.contains(&quot;not allowed&quot;) || output.contains(&quot;too large or too small&quot;),</span>
+                &quot;对于 a 的非法输入 &quot; + invalidA + &quot; 应提示错误信息。&quot;
+        );
+<span class="fc" id="L57">        Assertions.assertTrue(</span>
+<span class="fc" id="L58">                output.contains(&quot;x1 =&quot;),</span>
+                &quot;在重新输入合法 a 后，最终输出应包含求解结果 'x1 ='。&quot;
+        );
+<span class="fc" id="L61">    }</span>
+
+    /**
+     * 测试 a = 0 的边界情况（不是二次项）
+     */
+    @Test
+    void testAEqualsZero() {
+<span class="fc" id="L68">        String simulatedInput = &quot;0\n&quot; +</span>
+                &quot;1\n&quot; + &quot;2\n&quot; + &quot;3\n&quot; +
+                &quot;n\n&quot; + &quot;n\n&quot;;
+<span class="fc" id="L71">        System.setIn(new ByteArrayInputStream(simulatedInput.getBytes()));</span>
+
+<span class="fc" id="L73">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="fc" id="L74">            Quadratic.main(new String[]{});</span>
+<span class="fc" id="L75">        });</span>
+
+<span class="fc" id="L77">        String output = outContent.toString();</span>
+<span class="fc" id="L78">        System.out.println(&quot;Simulated Input for A=0:\n&quot; + simulatedInput);</span>
+<span class="fc" id="L79">        System.out.println(&quot;Captured Output for A=0:\n&quot; + output);</span>
+
+<span class="fc" id="L81">        Assertions.assertTrue(</span>
+<span class="fc" id="L82">                output.toLowerCase().contains(&quot;cannot be zero&quot;),</span>
+                &quot;当 a = 0 时，程序应输出 'cannot be zero' 的提示信息。&quot;
+        );
+
+<span class="fc" id="L86">        Assertions.assertTrue(</span>
+<span class="fc" id="L87">                output.contains(&quot;x1 =&quot;),</span>
+                &quot;在重新输入有效 a 后，程序应成功计算并输出结果。&quot;
+        );
+<span class="fc" id="L90">    }</span>
+
+    /**
+     * 测试 b 参数非法输入
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {&quot;@&quot;, &quot;1E309&quot;, &quot;1E-325&quot;})
+    void testInvalidB(String invalidB) {
+<span class="fc" id="L98">        String simulatedInput = &quot;1\n&quot; + invalidB + &quot;\n&quot; +</span>
+                &quot;1\n&quot; + &quot;2\n&quot; + &quot;3\n&quot; +
+                &quot;n\n&quot; + &quot;n\n&quot;;
+<span class="fc" id="L101">        System.setIn(new ByteArrayInputStream(simulatedInput.getBytes()));</span>
+
+<span class="fc" id="L103">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="fc" id="L104">            Quadratic.main(new String[]{});</span>
+<span class="fc" id="L105">        });</span>
+
+<span class="fc" id="L107">        String output = outContent.toString();</span>
+<span class="fc" id="L108">        System.out.println(&quot;Simulated Input for B:\n&quot; + simulatedInput);</span>
+<span class="fc" id="L109">        System.out.println(&quot;Captured Output for B:\n&quot; + output);</span>
+
+<span class="fc" id="L111">        Assertions.assertTrue(</span>
+<span class="pc bpc" id="L112" title="1 of 4 branches missed.">                output.contains(&quot;not allowed&quot;) || output.contains(&quot;too large or too small&quot;),</span>
+                &quot;对于 b 的非法输入 &quot; + invalidB + &quot; 应提示错误信息。&quot;
+        );
+<span class="fc" id="L115">        Assertions.assertTrue(</span>
+<span class="fc" id="L116">                output.contains(&quot;x1 =&quot;),</span>
+                &quot;在重新输入合法 b 后，最终输出应包含求解结果 'x1 ='。&quot;
+        );
+<span class="fc" id="L119">    }</span>
+
+    /**
+     * 测试 c 参数非法输入
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {&quot;@&quot;, &quot;1E309&quot;, &quot;1E-325&quot;})
+    void testInvalidC(String invalidC) {
+<span class="fc" id="L127">        String simulatedInput = &quot;1\n&quot; + &quot;2\n&quot; + invalidC + &quot;\n&quot; +</span>
+                &quot;1\n&quot; + &quot;2\n&quot; + &quot;3\n&quot; +
+                &quot;n\n&quot; + &quot;n\n&quot;;
+<span class="fc" id="L130">        System.setIn(new ByteArrayInputStream(simulatedInput.getBytes()));</span>
+
+<span class="fc" id="L132">        assertTimeoutPreemptively(Duration.ofSeconds(5), () -&gt; {</span>
+<span class="fc" id="L133">            Quadratic.main(new String[]{});</span>
+<span class="fc" id="L134">        });</span>
+
+<span class="fc" id="L136">        String output = outContent.toString();</span>
+<span class="fc" id="L137">        System.out.println(&quot;Simulated Input for C:\n&quot; + simulatedInput);</span>
+<span class="fc" id="L138">        System.out.println(&quot;Captured Output for C:\n&quot; + output);</span>
+
+<span class="fc" id="L140">        Assertions.assertTrue(</span>
+<span class="pc bpc" id="L141" title="1 of 4 branches missed.">                output.contains(&quot;not allowed&quot;) || output.contains(&quot;too large or too small&quot;),</span>
+                &quot;对于 c 的非法输入 &quot; + invalidC + &quot; 应提示错误信息。&quot;
+        );
+<span class="fc" id="L144">        Assertions.assertTrue(</span>
+<span class="fc" id="L145">                output.contains(&quot;x1 =&quot;),</span>
+                &quot;在重新输入合法 c 后，最终输出应包含求解结果 'x1 ='。&quot;
+        );
+<span class="fc" id="L148">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
