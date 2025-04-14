@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImprovedCoverageTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DateHelperZ3Test Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.example.myapplication</a> &gt; <span class="el_source">ImprovedCoverageTest.java</span></div><h1>ImprovedCoverageTest.java</h1><pre class="source lang-java linenums">package com.example.myapplication;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import com.example.myapplication.helper.DateHelper;
+import com.example.myapplication.helper.DateHelper.DateFormats;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Locale;
+
+<span class="nc" id="L16">public class ImprovedCoverageTest {</span>
+
+    private Locale defaultLocale;
+
+    @Before
+    public void setUp() {
+<span class="nc" id="L22">        defaultLocale = Locale.getDefault();</span>
+<span class="nc" id="L23">        Locale.setDefault(Locale.US);</span>
+<span class="nc" id="L24">    }</span>
+
+    @After
+    public void tearDown() {
+<span class="nc" id="L28">        Locale.setDefault(defaultLocale);</span>
+<span class="nc" id="L29">    }</span>
+
+    @Test
+    public void testGetDateOnly_fromLong() {
+<span class="nc" id="L33">        long currentTime = System.currentTimeMillis();</span>
+<span class="nc" id="L34">        String result = DateHelper.getDateOnly(currentTime);</span>
+<span class="nc" id="L35">        assertNotNull(result);</span>
+<span class="nc" id="L36">        assertTrue(result.matches(&quot;\\d{2}/\\d{2}/\\d{4}&quot;));</span>
+<span class="nc" id="L37">    }</span>
+
+    @Test
+    public void testGetDateOnly_fromString() {
+<span class="nc" id="L41">        long millis = DateHelper.getDateOnly(&quot;01/01/2020&quot;);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        assertTrue(millis &gt; 0);</span>
+<span class="nc" id="L43">    }</span>
+
+    @Test
+    public void testPrettifyDate_longAndString() {
+<span class="nc" id="L47">        long now = System.currentTimeMillis();</span>
+<span class="nc" id="L48">        assertNotNull(DateHelper.prettifyDate(now));</span>
+<span class="nc" id="L49">        assertNotNull(DateHelper.prettifyDate(Long.toString(now)));</span>
+<span class="nc" id="L50">    }</span>
+
+    @Test
+    public void testGetDateAndTime_longAndString() {
+<span class="nc" id="L54">        long now = System.currentTimeMillis();</span>
+<span class="nc" id="L55">        assertNotNull(DateHelper.getDateAndTime(now));</span>
+<span class="nc" id="L56">        assertNotNull(DateHelper.getDateAndTime(Long.toString(now)));</span>
+<span class="nc" id="L57">    }</span>
+
+    @Test
+    public void testGetTimeOnly() {
+<span class="nc" id="L61">        assertNotNull(DateHelper.getTimeOnly(System.currentTimeMillis()));</span>
+<span class="nc" id="L62">    }</span>
+
+    @Test
+    public void testGetTodayAndTomorrow() {
+<span class="nc" id="L66">        assertNotNull(DateHelper.getToday());</span>
+<span class="nc" id="L67">        assertNotNull(DateHelper.getTodayWithTime());</span>
+<span class="nc" id="L68">        assertNotNull(DateHelper.getTomorrow());</span>
+<span class="nc" id="L69">    }</span>
+
+    @Test
+    public void testGetDaysBetweenTwoDates() {
+<span class="nc" id="L73">        Long days = DateHelper.getDaysBetweenTwoDate(&quot;01/01/2020, 10:00 AM&quot;, &quot;02/01/2020, 10:00 AM&quot;, DateFormats.D_DDMMYYYYHHMMA);</span>
+<span class="nc" id="L74">        assertEquals(Long.valueOf(-1), days);</span>
+<span class="nc" id="L75">    }</span>
+
+    @Test
+    public void testGetHoursBetweenTwoDates() {
+<span class="nc" id="L79">        Long hours = DateHelper.getHoursBetweenTwoDate(&quot;01/01/2020, 10:00 AM&quot;, &quot;01/01/2020, 12:00 PM&quot;, DateFormats.D_DDMMYYYYHHMMA);</span>
+<span class="nc" id="L80">        assertEquals(Long.valueOf(-2), hours);</span>
+<span class="nc" id="L81">    }</span>
+
+    @Test
+    public void testGetMinutesBetweenTwoDates() {
+<span class="nc" id="L85">        Long minutes = DateHelper.getMinutesBetweenTwoDates(&quot;01/01/2020, 10:00 AM&quot;, &quot;01/01/2020, 10:30 AM&quot;, DateFormats.D_DDMMYYYYHHMMA);</span>
+<span class="nc" id="L86">        assertEquals(Long.valueOf(-30), minutes);</span>
+<span class="nc" id="L87">    }</span>
+
+    @Test
+    public void testParseAnyDate() {
+<span class="nc" id="L91">        long result = DateHelper.parseAnyDate(&quot;2020-01-01&quot;);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        assertTrue(result &gt; 0);</span>
+<span class="nc" id="L93">    }</span>
+
+    @Test
+    public void testParseDate() {
+<span class="nc" id="L97">        long result = DateHelper.parseDate(&quot;01-01-2020&quot;, DateFormats.D_DDMMYYYY);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        assertTrue(result &gt; 0);</span>
+<span class="nc" id="L99">    }</span>
+
+    @Test
+    public void testGetDesiredFormat() {
+<span class="nc" id="L103">        assertNotNull(DateHelper.getDesiredFormat(DateFormats.D_DDMMYYYY));</span>
+<span class="nc" id="L104">        assertNotNull(DateHelper.getDesiredFormat(DateFormats.D_DDMMYYYY, System.currentTimeMillis()));</span>
+<span class="nc" id="L105">    }</span>
+
+    @Test
+    public void testGetDateFromDays() {
+<span class="nc" id="L109">        String result = DateHelper.getDateFromDays(5);</span>
+<span class="nc" id="L110">        assertNotNull(result);</span>
+<span class="nc" id="L111">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

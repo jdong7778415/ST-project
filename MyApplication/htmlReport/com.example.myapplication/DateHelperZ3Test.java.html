@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DateHelperZ3Test.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DateHelperZ3Test Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.example.myapplication</a> &gt; <span class="el_source">DateHelperZ3Test.java</span></div><h1>DateHelperZ3Test.java</h1><pre class="source lang-java linenums">package com.example.myapplication;
+
+import com.example.myapplication.helper.DateHelper;
+import com.microsoft.z3.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import static org.junit.Assert.*;
+
+@RunWith(Parameterized.class)
+public class DateHelperZ3Test {
+
+    private final String inputDate;
+    private final DateHelper.DateFormats inputFormat;
+    private final DateHelper.DateFormats outputFormat;
+
+<span class="fc" id="L20">    public DateHelperZ3Test(String inputDate, DateHelper.DateFormats inputFormat, DateHelper.DateFormats outputFormat) {</span>
+<span class="fc" id="L21">        this.inputDate = inputDate;</span>
+<span class="fc" id="L22">        this.inputFormat = inputFormat;</span>
+<span class="fc" id="L23">        this.outputFormat = outputFormat;</span>
+<span class="fc" id="L24">    }</span>
+
+    @Parameterized.Parameters(name = &quot;{index}: parse({0})&quot;)
+    public static Collection&lt;Object[]&gt; data() {
+<span class="fc" id="L28">        return Arrays.asList(new Object[][]{</span>
+                {&quot;2023-12-31&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;2023-13-31&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;2023-12-32&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;2020-02-29&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;2019-02-29&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;2023.5-12-31&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;1970-01-01&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;invalid-date&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot; 2021-12-31 &quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;2023-8-8&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+                {&quot;23231-1-310000&quot;, DateHelper.DateFormats.D_YYYYMMDD, DateHelper.DateFormats.S_DDMMYYYY},
+        });
+    }
+
+    @Test
+    public void testDateParsingAgainstZ3Constraints() throws Exception {
+<span class="fc" id="L46">        long timestamp = 0;</span>
+        try {
+<span class="fc" id="L48">            timestamp = DateHelper.parseDate(inputDate.trim(), inputFormat);</span>
+<span class="nc" id="L49">        } catch (Exception e) {</span>
+<span class="nc" id="L50">            timestamp = 0;</span>
+<span class="fc" id="L51">        }</span>
+
+<span class="fc" id="L53">        boolean isExpectedValid = checkZ3Validity(inputDate);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        boolean actualValid = (timestamp != 0);</span>
+
+<span class="fc" id="L56">        assertEquals(&quot;Date: &quot; + inputDate, isExpectedValid, actualValid);</span>
+<span class="fc" id="L57">    }</span>
+
+    private boolean checkZ3Validity(String input) {
+<span class="fc" id="L60">        try (Context ctx = new Context()) {</span>
+<span class="fc" id="L61">            String[] parts = input.trim().split(&quot;-&quot;);</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            if (parts.length != 3) return false;</span>
+
+<span class="fc" id="L64">            int year = Integer.parseInt(parts[0]);</span>
+<span class="fc" id="L65">            int month = Integer.parseInt(parts[1]);</span>
+<span class="fc" id="L66">            int day = Integer.parseInt(parts[2]);</span>
+
+<span class="fc" id="L68">            Solver solver = ctx.mkSolver();</span>
+<span class="fc" id="L69">            IntExpr y = ctx.mkIntConst(&quot;year&quot;);</span>
+<span class="fc" id="L70">            IntExpr m = ctx.mkIntConst(&quot;month&quot;);</span>
+<span class="fc" id="L71">            IntExpr d = ctx.mkIntConst(&quot;day&quot;);</span>
+
+<span class="fc" id="L73">            solver.add(ctx.mkEq(y, ctx.mkInt(year)));</span>
+<span class="fc" id="L74">            solver.add(ctx.mkEq(m, ctx.mkInt(month)));</span>
+<span class="fc" id="L75">            solver.add(ctx.mkEq(d, ctx.mkInt(day)));</span>
+
+<span class="fc" id="L77">            solver.add(ctx.mkAnd(ctx.mkGe(m, ctx.mkInt(1)), ctx.mkLe(m, ctx.mkInt(12))));</span>
+<span class="fc" id="L78">            solver.add(ctx.mkGe(d, ctx.mkInt(1)));</span>
+
+<span class="fc" id="L80">            BoolExpr[] monthDays = new BoolExpr[]{</span>
+<span class="fc" id="L81">                    ctx.mkImplies(ctx.mkEq(m, ctx.mkInt(2)),</span>
+<span class="fc" id="L82">                            ctx.mkOr(</span>
+<span class="fc" id="L83">                                    ctx.mkAnd(isLeapYear(ctx, y), ctx.mkLe(d, ctx.mkInt(29))),</span>
+<span class="fc" id="L84">                                    ctx.mkAnd(ctx.mkNot(isLeapYear(ctx, y)), ctx.mkLe(d, ctx.mkInt(28)))</span>
+                            )),
+<span class="fc" id="L86">                    ctx.mkImplies(ctx.mkOr(ctx.mkEq(m, ctx.mkInt(4)), ctx.mkEq(m, ctx.mkInt(6)), ctx.mkEq(m, ctx.mkInt(9)), ctx.mkEq(m, ctx.mkInt(11))),</span>
+<span class="fc" id="L87">                            ctx.mkLe(d, ctx.mkInt(30))),</span>
+<span class="fc" id="L88">                    ctx.mkImplies(ctx.mkOr(ctx.mkEq(m, ctx.mkInt(1)), ctx.mkEq(m, ctx.mkInt(3)), ctx.mkEq(m, ctx.mkInt(5)), ctx.mkEq(m, ctx.mkInt(7)), ctx.mkEq(m, ctx.mkInt(8)), ctx.mkEq(m, ctx.mkInt(10)), ctx.mkEq(m, ctx.mkInt(12))),</span>
+<span class="fc" id="L89">                            ctx.mkLe(d, ctx.mkInt(31)))</span>
+            };
+<span class="fc" id="L91">            solver.add(monthDays);</span>
+
+<span class="fc bfc" id="L93" title="All 2 branches covered.">            return solver.check() == Status.SATISFIABLE;</span>
+<span class="fc" id="L94">        } catch (Exception e) {</span>
+<span class="fc" id="L95">            return false;</span>
+        }
+    }
+
+    private BoolExpr isLeapYear(Context ctx, IntExpr year) {
+<span class="fc" id="L100">        return ctx.mkOr(</span>
+<span class="fc" id="L101">                ctx.mkAnd(ctx.mkEq(ctx.mkMod(year, ctx.mkInt(4)), ctx.mkInt(0)),</span>
+<span class="fc" id="L102">                        ctx.mkNot(ctx.mkEq(ctx.mkMod(year, ctx.mkInt(100)), ctx.mkInt(0)))),</span>
+<span class="fc" id="L103">                ctx.mkEq(ctx.mkMod(year, ctx.mkInt(400)), ctx.mkInt(0))</span>
+        );
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

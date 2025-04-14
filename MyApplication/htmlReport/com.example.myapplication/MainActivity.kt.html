@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MainActivity.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">DateHelperZ3Test Coverage Results</a> &gt; <a href="index.source.html" class="el_package">com.example.myapplication</a> &gt; <span class="el_source">MainActivity.kt</span></div><h1>MainActivity.kt</h1><pre class="source lang-java linenums">package com.example.myapplication
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.myapplication.ui.theme.MyApplicationTheme
+
+<span class="nc" id="L16">class MainActivity : ComponentActivity() {</span>
+    override fun onCreate(savedInstanceState: Bundle?) {
+<span class="nc" id="L18">        super.onCreate(savedInstanceState)</span>
+<span class="nc" id="L19">        enableEdgeToEdge()</span>
+<span class="nc" id="L20">        setContent {</span>
+<span class="nc bnc" id="L21" title="All 8 branches missed.">            MyApplicationTheme {</span>
+<span class="nc bnc" id="L22" title="All 8 branches missed.">                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding -&gt;</span>
+<span class="nc bnc" id="L23" title="All 8 branches missed.">                    Greeting(</span>
+<span class="nc" id="L24">                        name = &quot;Android&quot;,</span>
+<span class="nc" id="L25">                        modifier = Modifier.padding(innerPadding)</span>
+<span class="nc" id="L26">                    )</span>
+<span class="nc" id="L27">                }</span>
+<span class="nc" id="L28">            }</span>
+<span class="nc" id="L29">        }</span>
+<span class="nc" id="L30">    }</span>
+}
+
+@Composable
+<span class="nc bnc" id="L34" title="All 20 branches missed.">fun Greeting(name: String, modifier: Modifier = Modifier) {</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">    Text(</span>
+<span class="nc" id="L36">        text = &quot;Hello $name!&quot;,</span>
+<span class="nc" id="L37">        modifier = modifier</span>
+    )
+<span class="nc bnc" id="L39" title="All 2 branches missed.">}</span>
+
+@Preview(showBackground = true)
+@Composable
+<span class="nc bnc" id="L43" title="All 6 branches missed.">fun GreetingPreview() {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">    MyApplicationTheme {</span>
+<span class="nc bnc" id="L45" title="All 8 branches missed.">        Greeting(&quot;Android&quot;)</span>
+<span class="nc" id="L46">    }</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">}</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
